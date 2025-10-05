@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TypeFlow - Typing Practice</title>
+  <meta name="description" content="Adaptive typing practice web app" />
+  <meta name="theme-color" content="#0a0f24" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+  <link rel="stylesheet" href="styles/base.css" />
+  <link rel="stylesheet" href="styles/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Particle background container -->
+  <div id="particles"></div>
+
+  <header class="app-header">
+    <h1>TypeFlow <span class="brand-accent">β</span><span class="user-status" id="userStatus">(guest)</span></h1>
+    <nav class="toolbar">
+      <button id="modeToggle" aria-label="Toggle theme" class="btn-ghost">🌗</button>
+      <button id="authOpen" class="btn-ghost" title="Login / Signup">👤</button>
+      <button id="resetSession" class="btn-ghost" title="Reset current session">⟳</button>
+    </nav>
+  </header>
+
+  <main class="layout">
+    <section class="panel test-text-panel">
+      <h2 class="panel-title">Practice Text</h2>
+      <div id="testText" class="test-text" aria-live="polite"></div>
+      <div class="input-visualization" id="keyStream" aria-label="Live key presses"></div>
+      <p class="hint">Start typing to begin. Your keys will appear above.</p>
+      <div id="srStats" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
+    </section>
+
+    <section class="panel suggestions-panel">
+      <h2 class="panel-title">Focus Suggestions</h2>
+      <ul id="suggestions" class="suggestion-list"></ul>
+      <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
+        <button id="regenSuggestions" class="primary-btn small">Regenerate</button>
+        <button id="startDrill" class="secondary-btn small" title="Generate a drill from current weak keys">Start Drill</button>
+        <button id="endDrill" class="danger-btn small" style="display:none;" title="Exit drill mode">End Drill</button>
+      </div>
+    </section>
+
+    <section class="panel stats-panel">
+      <h2 class="panel-title">Session Stats</h2>
+      <div class="stats-grid">
+        <div class="stat"><span class="label">Time</span><span id="statTime" class="value">0s</span></div>
+        <div class="stat"><span class="label">WPM</span><span id="statWPM" class="value">0</span></div>
+        <div class="stat"><span class="label">Accuracy</span><span id="statAccuracy" class="value">100%</span></div>
+        <div class="stat"><span class="label">Errors</span><span id="statErrors" class="value">0</span></div>
+      </div>
+      <div class="history-controls">
+        <button id="exportHistory" class="secondary-btn small">Export History</button>
+        <button id="clearHistory" class="danger-btn small">Clear History</button>
+      </div>
+      <details class="history-details">
+        <summary>Past Sessions</summary>
+        <ul id="historyList" class="history-list"></ul>
+      </details>
+    </section>
+
+    <section class="panel" id="keyboardPanel">
+      <h2 class="panel-title">Keyboard</h2>
+      <div id="keyboard" class="keyboard" aria-hidden="true"></div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <small>Local adaptive engine prototype • Extendable architecture • <a href="#" id="showHelp">Help</a></small>
+  </footer>
+
+  <!-- Help modal -->
+  <dialog id="helpDialog">
+    <h3>How it works</h3>
+    <p>This prototype tracks which keys you miss or hesitate on and surfaces targeted drills. Data is stored locally in your browser.</p>
+    <ul>
+      <li><strong>Adaptive suggestions:</strong> Focus list updates as you type.</li>
+      <li><strong>Privacy:</strong> No data leaves your device unless you export.</li>
+      <li><strong>Extensible:</strong> Modular code for adding multiplayer, cloud sync, or gamification.</li>
+    </ul>
+    <form method="dialog"><button class="primary-btn">Close</button></form>
+  </dialog>
+
+  <!-- Auth Modal -->
+  <dialog id="authDialog">
+    <h3 id="authTitle">Login</h3>
+    <form id="authForm" class="auth-form" method="dialog">
+      <div>
+        <label for="authUsername">Username</label>
+        <input id="authUsername" name="username" required autocomplete="username" />
+      </div>
+      <div>
+        <label for="authPassword">Password</label>
+        <input id="authPassword" name="password" type="password" required autocomplete="current-password" />
+      </div>
+      <div id="authExtra" style="display:none">
+        <label for="authPassword2">Confirm Password</label>
+        <input id="authPassword2" name="password2" type="password" autocomplete="new-password" />
+      </div>
+      <div style="display:flex; gap:.6rem; flex-wrap:wrap;">
+        <button type="submit" class="btn-accent" id="authSubmit">Login</button>
+        <button type="button" class="btn" id="authModeSwitch">Need an account?</button>
+        <button type="button" class="btn-ghost" id="authCancel">Cancel</button>
+      </div>
+      <small id="authMessage" style="opacity:.8"></small>
+    </form>
+  </dialog>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="false"></div>
+
+  <!-- tsParticles CDN (can be replaced with local bundler later) -->
+  <script src="https://cdn.jsdelivr.net/npm/tsparticles@3/tsparticles.bundle.min.js" defer></script>
+  <script type="module" src="src/app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').then(reg => {
+          if (reg.waiting) console.log('SW waiting (ready to activate)');
+          reg.addEventListener('updatefound', () => {
+            const nw = reg.installing;
+            nw?.addEventListener('statechange', () => {
+              if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+                console.log('[TypeFlow] Update available - send message or show toast');
+                const tc = document.getElementById('toastContainer');
+                if (tc) {
+                  const div = document.createElement('div');
+                  div.className = 'toast';
+                  div.innerHTML = '<div><div class="title">Update Ready</div><div class="body">Reload to get latest features.</div></div>';
+                  tc.appendChild(div);
+                }
+              }
+            });
+          });
+        }).catch(err => console.warn('SW registration failed', err));
+      });
+    }
+  </script>
+</body>
+</html>
