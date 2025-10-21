@@ -17,11 +17,12 @@ const CORE_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/styles/base.css',
-  '/styles/style.css',
-  '/src/app.js',
+  '/styles/optimized.css',
+  '/src/app-optimized.js',
   '/src/engine.js',
-  '/src/particles.js'
+  '/src/particles.js',
+  '/src/particles-optimized.js',
+  '/src/virtual-scroll.js'
 ];
 
 // Track in-flight fetches to avoid duplicate network calls when many tabs open
@@ -53,7 +54,8 @@ function isStaticAsset(req) {
 }
 
 function isApi(req) {
-  return new URL(req.url).pathname.startsWith('/api/');
+  const url = new URL(req.url);
+  return url.origin === self.location.origin && url.pathname.startsWith('/api/');
 }
 
 async function staleWhileRevalidate(request, cacheName) {

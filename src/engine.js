@@ -77,7 +77,7 @@ export class TypingEngine {
   accuracy() {
     const typed = this.cursor + this.errors;
     if (!typed) return 100;
-    return Math.max(0, ((this.cursor) / typed) * 100).toFixed(1);
+    return +Math.max(0, (this.cursor / typed) * 100).toFixed(1);
   }
 
   wpm() {

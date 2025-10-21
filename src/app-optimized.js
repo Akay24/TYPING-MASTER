@@ -19,16 +19,7 @@ const debounce = (func, wait) => {
   };
 };
 
-const throttle = (func, limit) => {
-  let inThrottle;
-  return function(...args) {
-    if (!inThrottle) {
-      func.apply(this, args);
-      inThrottle = true;
-      setTimeout(() => inThrottle = false, limit);
-    }
-  };
-};
+// Note: Avoid throttling keystrokes to prevent dropped input
 
 // --- DOM references with caching ---
 const els = {
@@ -180,8 +171,8 @@ const sampleTexts = [
 function randomText() { return sampleTexts[Math.floor(Math.random() * sampleTexts.length)]; }
 engine.loadText(randomText());
 
-// --- Optimized key handling ---
-const keyHandler = throttle((e) => {
+// --- Keystroke handling (no throttle to avoid dropped input)
+function onKeyDown(e) {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   if (e.key.length === 1 || e.key === 'Enter' || e.key === 'Tab') {
     e.preventDefault();
@@ -193,9 +184,9 @@ const keyHandler = throttle((e) => {
     clearKeyStream();
     refreshSuggestions();
   }
-}, 16); // ~60fps throttling
+}
 
-window.addEventListener('keydown', keyHandler);
+window.addEventListener('keydown', onKeyDown);
 
 // --- Optimized render functions ---
 function renderText(state) {
@@ -424,6 +415,17 @@ function pushToast({ title, body, type = 'info', timeout = 4000 }) {
   wrap.querySelector('.close').addEventListener('click', remove);
   if (timeout) setTimeout(remove, timeout);
 }
+
+// Global error reporting for better DX and user feedback
+window.addEventListener('error', (e) => {
+  console.error('[TypeFlow] Uncaught error', e.error || e.message);
+  try { pushToast({ title: 'Error', body: e.message || 'Unexpected error', type: 'error' }); } catch {}
+});
+window.addEventListener('unhandledrejection', (e) => {
+  const msg = (e.reason && (e.reason.message || String(e.reason))) || 'Unexpected error';
+  console.error('[TypeFlow] Unhandled promise rejection', e.reason);
+  try { pushToast({ title: 'Error', body: msg, type: 'error' }); } catch {}
+});
 
 // --- Auth UI Handlers ---
 els.authOpen.addEventListener('click', () => {

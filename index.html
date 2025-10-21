@@ -8,11 +8,12 @@
   <meta name="theme-color" content="#0a0f24" />
   <link rel="manifest" href="/manifest.json" />
   <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
-  <link rel="apple-touch-icon" href="/icons/icon-19  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192.png" />
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"></noscript>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="styles/optimized.css" />l="stylesheet">
+  <link rel="stylesheet" href="styles/optimized.css" />
 </head>
 <body>
   <!-- Particle background container -->
@@ -111,9 +112,11 @@
     </form>
   </dialog>
 
-  <!-- Toast Con  <s  <script type="module" src="src/app-optimized.js"></script>
-  <script>es@3/tsparticles.bundle.min.js" defer></script>
-  <script type="module" src="src/app.js"></script>
+  <!-- Toast Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- App bootstrap -->
+  <script type="module" src="src/app-optimized.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {

@@ -8,6 +8,8 @@ export class VirtualScroll {
     this.scrollTop = 0;
     this.startIndex = 0;
     this.endIndex = 0;
+    this._onScroll = null;
+    this._raf = 0;
     
     this.init();
   }
@@ -39,12 +41,14 @@ export class VirtualScroll {
     this.itemsContainer.style.right = '0';
     this.viewport.appendChild(this.itemsContainer);
     
-    this.container.addEventListener('scroll', this.handleScroll.bind(this));
+    this._onScroll = this.handleScroll.bind(this);
+    this.container.addEventListener('scroll', this._onScroll, { passive: true });
   }
 
   setData(data) {
     this.data = data;
     this.updateSpacer();
+    this.updateVisibleRange();
     this.render();
   }
 
@@ -53,9 +57,13 @@ export class VirtualScroll {
   }
 
   handleScroll() {
-    this.scrollTop = this.container.scrollTop;
-    this.updateVisibleRange();
-    this.render();
+    if (this._raf) return;
+    this._raf = requestAnimationFrame(() => {
+      this._raf = 0;
+      this.scrollTop = this.container.scrollTop;
+      this.updateVisibleRange();
+      this.render();
+    });
   }
 
   updateVisibleRange() {
@@ -97,7 +105,14 @@ export class VirtualScroll {
   }
 
   destroy() {
-    this.container.removeEventListener('scroll', this.handleScroll.bind(this));
+    if (this._raf) {
+      cancelAnimationFrame(this._raf);
+      this._raf = 0;
+    }
+    if (this._onScroll) this.container.removeEventListener('scroll', this._onScroll);
     this.container.innerHTML = '';
+    this.viewport = null;
+    this.itemsContainer = null;
+    this.spacer = null;
   }
 }
