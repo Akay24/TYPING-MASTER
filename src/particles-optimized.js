@@ -60,13 +60,15 @@ export class LightweightParticles {
   }
 
   bindEvents() {
-    window.addEventListener('resize', () => this.resize());
-    
-    this.container.addEventListener('mousemove', (e) => {
+    this._onResize = () => this.resize();
+    this._onMouseMove = (e) => {
       const rect = this.container.getBoundingClientRect();
       this.mouse.x = e.clientX - rect.left;
       this.mouse.y = e.clientY - rect.top;
-    });
+    };
+
+    window.addEventListener('resize', this._onResize, { passive: true });
+    this.container.addEventListener('mousemove', this._onMouseMove, { passive: true });
   }
 
   updateParticles() {
@@ -142,6 +144,8 @@ export class LightweightParticles {
 
   destroy() {
     this.stop();
+    if (this._onResize) window.removeEventListener('resize', this._onResize);
+    if (this._onMouseMove) this.container.removeEventListener('mousemove', this._onMouseMove);
     if (this.canvas && this.canvas.parentNode) {
       this.canvas.parentNode.removeChild(this.canvas);
     }
